@@ -87,9 +87,7 @@ function handleInputKeydown(ev) {
 				for (let i = 0; i < drops.length; i++) {
 					const drop = drops[i];
 
-					if (hittedDropIds[drop.id]) {
-						playSound('drop-pop.mp3');
-					} else {
+					if (!hittedDropIds[drop.id]) {
 						newDrops.push(drop);
 					}
 				}
@@ -102,8 +100,6 @@ function handleInputKeydown(ev) {
 		} else {
 			drops = [];
 			currentScore += drops.length;
-
-			playSound('golden-drop-pop.mp3');
 		}
 
 		scoreElement.textContent = currentScore;
@@ -312,14 +308,6 @@ function getRandomFloat(min, max) {
 
 function getRandomOperator() {
 	return OPERATORS[Math.floor(Math.random() * OPERATORS.length)];
-}
-
-function playSound(sound) {
-	const audio = new Audio(sound);
-
-	audio.addEventListener('canplaythrough', () => {
-		audio.play();
-	});
 }
 
 function stopLoop() {
