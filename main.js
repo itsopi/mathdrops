@@ -123,6 +123,9 @@ function handleButtonClick() {
 
 	scoreElement.textContent = currentScore;
 	inputElement.hidden = false;
+	inputElement.value = '';
+
+	inputElement.focus();
 
 	addDrop();
 	loop();
