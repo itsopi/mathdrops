@@ -47,6 +47,7 @@ main {
 
 .wrapper {
 	gap: 1rem;
+	padding: 1rem;
 	width: fit-content;
 	display: flex;
 	flex-direction: column;
