@@ -98,8 +98,8 @@ function handleInputKeydown(ev) {
 				currentScore = Math.max(0, currentScore - 1);
 			}
 		} else {
-			drops = [];
 			currentScore += drops.length;
+			drops = [];
 		}
 
 		scoreElement.textContent = currentScore;
@@ -150,11 +150,11 @@ function loop() {
 
 		drop.y += drop.speed;
 
+		drawDrop(drop);
+
 		if (drop.y > CANVAS_HEIGHT - (CANVAS_HEIGHT * seaLevel)) {
 			missedDropIds[drop.id] = true;
 		}
-
-		drawDrop(drop);
 	}
 
 	let shouldEnd = false;
@@ -195,16 +195,14 @@ function drawDrop(drop) {
 	const w = drop.w;
 	const h = drop.h;
 	let fillStyle = '#03a9f4';
-	let strokeStyle = '#81d4fa';
 
 	if (drop.is_golden) {
 		fillStyle = '#ffeb3b';
-		strokeStyle = '#fffde7';
 	}
 
 	ctx.fillStyle = fillStyle;
-	ctx.strokeStyle = strokeStyle;
-	ctx.lineWidth = 6;
+	ctx.strokeStyle = '#fff';
+	ctx.lineWidth = 4;
 
 	ctx.beginPath();
 	ctx.moveTo(x, y);
