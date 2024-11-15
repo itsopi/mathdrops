@@ -374,21 +374,15 @@ function showSummary() {
 			<tbody>
 				<tr>
 					<td>Score</td>
-					<td>
-						<strong>${currentScore}</strong>
-					</td>
+					<td>${currentScore}</td>
 				</tr>
 				<tr>
 					<td>Correct</td>
-					<td>
-						<strong>${hittedDropsCount}</strong>
-					</td>
+					<td>${hittedDropsCount}</td>
 				</tr>
 				<tr>
 					<td>Accuracy</td>
-					<td>
-						<strong>${accuracy ? accuracy.toFixed(2) : 0}%</strong>
-					</td>
+					<td>${accuracy ? accuracy.toFixed(2) : 0}%</td>
 				</tr>
 			</tbody>
 		</table>
