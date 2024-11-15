@@ -1,12 +1,14 @@
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = (CANVAS_WIDTH / 16) * 9;
 const BASE_ADD_DROP_INTERVAL = 2000;
-const MIN_ADD_DROP_INTERVAL = 600;
+const MIN_ADD_DROP_INTERVAL = 500;
 const ADD_DROP_INTERVAL_DECREMENT = 20;
 const DROP_SIZE = 112;
 const DROP_BASE_SPEED = 0.5;
 const DROP_SPEED_INCREMENT = 0.005;
-const CHANCE_OF_GOLDEN_DROP = 0.02;
+const GOLDEN_DROP_CHANCE = 0.2;
+const POINTS_PER_HITTED_DROP = 50;
+const POINTS_PER_MISSED_DROP = 75;
 const OPERATORS = ['+', '-', '*', '/'];
 const OPERATOR_TO_UNICODE = {
 	'+': '\u002B',
@@ -16,11 +18,12 @@ const OPERATOR_TO_UNICODE = {
 };
 
 const mainElement = document.querySelector('main');
-const scoreElement = mainElement.querySelector('.js-score');
-const bestScoreElement = mainElement.querySelector('.js-best-score');
-const canvasElement = mainElement.querySelector('canvas');
-const inputElement = mainElement.querySelector('input');
-const buttonElement = mainElement.querySelector('button');
+const scoreElement = document.querySelector('.js-score');
+const bestScoreElement = document.querySelector('.js-best-score');
+const containerElement = document.querySelector('.js-container');
+const canvasElement = document.querySelector('canvas');
+const inputElement = document.querySelector('input');
+const buttonElement = document.querySelector('button');
 
 const ctx = canvasElement.getContext('2d');
 
@@ -29,6 +32,9 @@ let addDropInterval = null;
 let drops = [];
 let currentScore = 0;
 let seaLevel = 0.1;
+let dropsCount = 0;
+let hittedDropsCount = 0;
+let missedDropsCount = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
 	mainElement.hidden = false;
@@ -93,12 +99,15 @@ function handleInputKeydown(ev) {
 				}
 
 				drops = newDrops;
-				currentScore += deletedDropIdsLength;
+				currentScore += deletedDropIdsLength * POINTS_PER_HITTED_DROP;
+				hittedDropsCount += deletedDropIdsLength;
 			} else {
-				currentScore = Math.max(0, currentScore - 1);
+				currentScore = Math.max(0, currentScore - POINTS_PER_MISSED_DROP);
+				missedDropsCount++;
 			}
 		} else {
-			currentScore += drops.length;
+			currentScore += drops.length * POINTS_PER_HITTED_DROP;
+			hittedDropsCount += drops.length;
 			drops = [];
 		}
 
@@ -116,11 +125,13 @@ function handleButtonClick() {
 	drops = [];
 	currentScore = 0;
 	seaLevel = 0.1;
+	dropsCount = 0;
+	hittedDropsCount = 0;
 
+	document.querySelector('table')?.remove();
 	scoreElement.textContent = currentScore;
 	inputElement.hidden = false;
 	inputElement.value = '';
-
 	inputElement.focus();
 
 	addDrop();
@@ -186,6 +197,8 @@ function loop() {
 
 			bestScoreElement.textContent = currentScore;
 		}
+
+		showSummary();
 	}
 }
 
@@ -194,7 +207,7 @@ function drawDrop(drop) {
 	const y = drop.y;
 	const w = drop.w;
 	const h = drop.h;
-	let fillStyle = '#03a9f4';
+	let fillStyle = '#00bcd4';
 
 	if (drop.is_golden) {
 		fillStyle = '#ffeb3b';
@@ -211,7 +224,7 @@ function drawDrop(drop) {
 	ctx.fill();
 	ctx.stroke();
 
-	ctx.fillStyle = 'black';
+	ctx.fillStyle = '#333';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	ctx.font = '20px Arial';
@@ -227,7 +240,7 @@ function drawDrop(drop) {
 function drawSea() {
 	const h = CANVAS_HEIGHT * seaLevel;
 
-	ctx.fillStyle = '#03a9f4';
+	ctx.fillStyle = '#00bcd4';
 
 	ctx.fillRect(0, CANVAS_HEIGHT - h, CANVAS_WIDTH, h);
 }
@@ -237,7 +250,7 @@ function addDrop() {
 	const maxX = CANVAS_WIDTH - DROP_SIZE / 2;
 	const operator = getRandomOperator();
 	const { a, b } = getOperands(operator);
-	const speed = DROP_BASE_SPEED + (currentScore * DROP_SPEED_INCREMENT);
+	const speed = DROP_BASE_SPEED + (dropsCount * DROP_SPEED_INCREMENT);
 	const drop = {
 		id: Date.now(),
 		x: getRandomInt(minX, maxX),
@@ -249,10 +262,12 @@ function addDrop() {
 		b,
 		operator,
 		result: calculateResult(a, b, operator),
-		is_golden: Math.random() <= CHANCE_OF_GOLDEN_DROP
+		is_golden: Math.random() <= GOLDEN_DROP_CHANCE
 	};
 
 	drops.push(drop);
+
+	dropsCount++;
 }
 
 function getOperands(operator) {
@@ -319,8 +334,8 @@ function stopLoop() {
 
 }
 
-function startAddDropInterval(score = 0) {
-	const delay = Math.max(MIN_ADD_DROP_INTERVAL, BASE_ADD_DROP_INTERVAL - (score * ADD_DROP_INTERVAL_DECREMENT));
+function startAddDropInterval() {
+	const delay = Math.max(MIN_ADD_DROP_INTERVAL, BASE_ADD_DROP_INTERVAL - (dropsCount * ADD_DROP_INTERVAL_DECREMENT));
 
 	addDropInterval = setInterval(addDrop, delay);
 }
@@ -349,4 +364,33 @@ function getBestScore() {
 	}
 
 	return numericBestScore;
+}
+
+function showSummary() {
+	const accuracy = (hittedDropsCount / (hittedDropsCount + missedDropsCount)) * 100;
+
+	containerElement.insertAdjacentHTML('beforeend', `
+		<table>
+			<tbody>
+				<tr>
+					<td>Score</td>
+					<td>
+						<strong>${currentScore}</strong>
+					</td>
+				</tr>
+				<tr>
+					<td>Correct</td>
+					<td>
+						<strong>${hittedDropsCount}</strong>
+					</td>
+				</tr>
+				<tr>
+					<td>Accuracy</td>
+					<td>
+						<strong>${accuracy ? accuracy.toFixed(2) : 0}%</strong>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	`);
 }
